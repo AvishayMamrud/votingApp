@@ -1,0 +1,30 @@
+@startuml
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+' Vote batch (submission unit)
+entity "VoteBatch" as VoteBatch {
+  *id : UUID <<PK>>
+  --
+  survey_id : UUID          -- external reference
+  user_id : UUID            -- external reference
+  voting_mode : enum <<'anonymous', 'named'>>
+  is_submitted : boolean
+  submitted_at : datetime
+}
+
+' Individual votes per question
+entity "Vote" as Vote {
+  *id : UUID <<PK>>
+  --
+  vote_batch_id : UUID <<FK>>
+  question_id : UUID        -- external reference
+  selected_option_id : UUID -- external reference
+  created_at : datetime
+}
+
+' Relationships (logical, not enforced via FK)
+VoteBatch ||--o{ Vote : contains
+
+@enduml

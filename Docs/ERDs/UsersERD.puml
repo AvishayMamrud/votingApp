@@ -1,0 +1,16 @@
+@startuml
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "User" as User {
+  *id : UUID <<PK>>
+  --
+  username : text <<unique>>
+  email : text <<unique>>
+  hashed_password : text
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+@enduml

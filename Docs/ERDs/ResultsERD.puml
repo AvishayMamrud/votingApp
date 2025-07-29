@@ -1,0 +1,51 @@
+@startuml
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "SurveyResult" as SurveyResult {
+  *id : UUID <<PK>>
+  --
+  survey_id : UUID          -- external
+  title : varchar
+  total_responses : int
+  is_public : boolean
+  last_updated : datetime
+}
+
+entity "QuestionResult" as QuestionResult {
+  *id : UUID <<PK>>
+  --
+  survey_result_id : UUID   -- FK to SurveyResult
+  question_id : UUID        -- external
+  question_text : text
+  question_type : enum
+  total_answers : int
+}
+
+entity "OptionResult" as OptionResult {
+  *id : UUID <<PK>>
+  --
+  question_result_id : UUID -- FK to QuestionResult
+  option_id : UUID          -- external
+  option_text : text
+  vote_count : int
+  vote_percent : float
+}
+
+entity "DemographicStats" as DemographicStats {
+  *id : UUID <<PK>>
+  --
+  survey_result_id : UUID
+  group_by : varchar       -- e.g., 'age', 'location', 'gender'
+  key : varchar            -- e.g., '18-25', 'US', 'female'
+  vote_count : int
+  percent : float
+}
+
+' Relationships
+SurveyResult ||--o{ QuestionResult : has
+QuestionResult ||--o{ OptionResult : has
+SurveyResult ||--o{ DemographicStats : breaks_down
+
+@enduml
