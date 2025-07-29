@@ -1,9 +1,3 @@
-Absolutely — this is a solid **macro-level roadmap** that balances **planning, design, and implementation** in a logical and professional way. You're right: this is your **strategic plan**, and you'll eventually break it into **tactical, detailed steps** in the actual roadmap document.
-
-Let me walk through your priorities quickly to confirm the flow and touch on key notes:
-
----
-
 ### ✅ **Macro-Level Roadmap (Prioritized Breakdown)**
 
 ---
@@ -117,9 +111,3 @@ Let me walk through your priorities quickly to confirm the flow and touch on key
 * Role-based access
 * Input validation, rate limits
 * Future: encryption, audit logs, etc.
-
----
-
-### 🔧 Next Step?
-
-Would you like to begin with **Step 1: ARD** right now? I can draft the outline with your project's details pre-filled, and you can iterate from there.
