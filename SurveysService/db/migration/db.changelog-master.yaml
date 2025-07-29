@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: surveys-initial-schema
+      author: avishay
+      changes:
+        - sqlFile:
+            path: migrate_up.sql
+            relativeToChangelogFile: true
+      rollback:
+        - sqlFile:
+            path: migrate_down.sql
+            relativeToChangelogFile: true
