@@ -1,0 +1,50 @@
+# Build artifacts
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code settings
+.vscode/
+
+# Liquibase generated files (optional)
+liquibase.h2.db
+liquibase.properties.bak
+liquibase-update.log
+
+# ASP.NET secrets
+secrets.json
+
+# EF Core migrations cache
+Migrations/
+
+# Logs
+*.log
+logs/
+
+# IDE folders
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Dotnet tools
+*.dbmdl
+*.pdb
+
+# Environment files
+.env
+.env.*
+
+# npm artifacts if used (React front-end etc.)
+node_modules/
+dist/
+build/

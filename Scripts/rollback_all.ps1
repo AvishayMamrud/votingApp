@@ -3,7 +3,7 @@ $services = @("Users", "Surveys", "Votes", "Results")
 Write-Host "Running Liquibase rollback for all services..."
 
 foreach ($service in $services) {
-    $path = "..\${service}Service"
+    $path = "..\Services\${service}Service\db"
     Write-Host "Rolling back last changeset for ${service}Service..."
     Push-Location $path
     liquibase rollbackCount 1
