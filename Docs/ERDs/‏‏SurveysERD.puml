@@ -3,13 +3,13 @@ hide circle
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
 
-' Core entities
+' Core survey definition
 entity "Survey" as Survey {
   *id : UUID <<PK>>
   --
   title : varchar
   description : text
-  owner_id : UUID
+  owner_id : UUID <<FK>>
   expires_at : datetime
   created_at : datetime
   updated_at : datetime
@@ -20,9 +20,10 @@ entity "Question" as Question {
   --
   survey_id : UUID <<FK>>
   question_text : text
-  question_type : enum
+  question_type : enum <<single_choice, range_number, open_text>>
+  min_value : int  <<nullable>> ' for range_number
+  max_value : int  <<nullable>> ' for range_number
   sort_order : int
-  created_at : datetime
 }
 
 entity "Option" as Option {
@@ -31,70 +32,16 @@ entity "Option" as Option {
   question_id : UUID <<FK>>
   option_text : varchar
   sort_order : int
-  created_at : datetime
 }
 
 entity "SurveyTag" as SurveyTag {
-  survey_id : UUID <<FK>>
-  tag : varchar
-}
-
-' Access Control Tables
-entity "SurveyPublicAccess" as SurveyPublicAccess {
-  *survey_id : UUID <<PK>>
-}
-
-entity "SurveyUserAccess" as SurveyUserAccess {
-  *id : UUID <<PK>>
-  --
-  survey_id : UUID <<FK>>
-  user_id : UUID
-}
-
-entity "SurveyGroupAccess" as SurveyGroupAccess {
-  *id : UUID <<PK>>
-  --
-  survey_id : UUID <<FK>>
-  group_id : UUID
-}
-
-entity "SurveyRoleAccess" as SurveyRoleAccess {
-  *id : UUID <<PK>>
-  --
-  survey_id : UUID <<FK>>
-  role_name : varchar
-}
-
-' Group infrastructure (optional for completeness)
-entity "Group" as Group {
-  *id : UUID <<PK>>
-  name : varchar
-}
-
-entity "GroupMember" as GroupMember {
-  *group_id : UUID <<FK>>
-  *user_id : UUID <<FK>>
-}
-
-' External reference
-entity "User" as User {
-  *id : UUID <<PK>>
-  --
-  -- External service reference only
+  *survey_id : UUID <<FK>>
+  *tag : varchar
 }
 
 ' Relationships
-User ||--o{ Survey : owns
 Survey ||--o{ Question : contains
 Question ||--o{ Option : has
 Survey ||--o{ SurveyTag : tagged_with
-
-Survey ||--|| SurveyPublicAccess : "public"
-Survey ||--o{ SurveyUserAccess : "shared with users"
-Survey ||--o{ SurveyGroupAccess : "shared with groups"
-Survey ||--o{ SurveyRoleAccess : "shared with roles"
-
-Group ||--o{ GroupMember : has
-User ||--o{ GroupMember : member of
 
 @enduml

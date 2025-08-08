@@ -13,4 +13,30 @@ entity "User" as User {
   updated_at : timestamp
 }
 
+entity "Role" as Role {
+  *id : UUID <<PK>>
+  --
+  name : varchar
+  description : text
+  created_at : timestamp
+}
+
+entity "RoleUserPermission" as RoleUserPermission {
+  *role_id : UUID <<PK>><<FK>>
+  *user_id : UUID <<PK>><<FK>>
+  --
+  permission : enum [VIEW, CHANGE, OWN]
+}
+
+entity "RoleSurveyPermission" as RoleSurveyPermission {
+  *role_id : UUID <<PK>><<FK>>
+  *survey_id : UUID <<PK>>        
+  '-- external survey ID
+  --
+  permission : enum [VIEW, VOTE]
+}
+
+User ||--o{ RoleUserPermission : has
+Role ||--o{ RoleUserPermission : assigned_to
+Role ||--o{ RoleSurveyPermission : grants_access
 @enduml

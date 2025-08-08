@@ -1,24 +1,47 @@
--- Enable UUIDs
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Aggregated results per option per question
-CREATE TABLE survey_results (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    survey_id UUID NOT NULL,             -- from surveys service
-    question_id UUID NOT NULL,
-    option_id UUID NOT NULL,
-    total_votes INT DEFAULT 0,
-    last_updated TIMESTAMP WITH TIME ZONE DEFAULT now()
+-- ENUM for question_type
+CREATE TYPE question_type_enum AS ENUM ('single', 'range', 'text');
+
+-- Central per-question result summary
+CREATE TABLE question_result (
+  id UUID PRIMARY KEY,
+  survey_id UUID NOT NULL,
+  survey_title VARCHAR NOT NULL,
+  question_id UUID NOT NULL,
+  question_text TEXT NOT NULL,
+  question_type question_type_enum NOT NULL,
+  total_answers INT NOT NULL,
+  last_updated TIMESTAMP NOT NULL
 );
 
--- Optional demographic breakdown (if available in future)
-CREATE TABLE survey_results_demographics (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    survey_result_id UUID NOT NULL REFERENCES survey_results(id) ON DELETE CASCADE,
-    demographic_key TEXT NOT NULL,       -- e.g., "age_group"
-    demographic_value TEXT NOT NULL,     -- e.g., "18-25"
-    vote_count INT DEFAULT 0
+-- Per-option aggregation for single choice
+CREATE TABLE single_choice_result (
+  id UUID PRIMARY KEY,
+  question_result_id UUID NOT NULL,
+  option_id UUID NOT NULL,
+  option_text TEXT NOT NULL,
+  vote_count INT NOT NULL DEFAULT 0,
+
+  CONSTRAINT fk_scr_question_result
+    FOREIGN KEY (question_result_id)
+    REFERENCES question_result(id)
+    ON DELETE CASCADE
 );
 
-CREATE INDEX idx_results_lookup ON survey_results(survey_id, question_id, option_id);
-CREATE INDEX idx_results_demo_lookup ON survey_results_demographics(survey_result_id);
+-- Aggregated stats for range questions
+CREATE TABLE range_question_result (
+  id UUID PRIMARY KEY,
+  question_result_id UUID NOT NULL,
+  avg_value DOUBLE PRECISION NOT NULL,
+  std_deviation DOUBLE PRECISION NOT NULL,
+
+  CONSTRAINT fk_rqr_question_result
+    FOREIGN KEY (question_result_id)
+    REFERENCES question_result(id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX idx_question_result ON question_result(survey_id, question_id);
+CREATE INDEX idx_single_choice_result ON single_choice_result(question_result_id, option_id);
+CREATE INDEX idx_range_question_result ON range_question_result(question_result_id);

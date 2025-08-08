@@ -1,1 +1,4 @@
-public interface IResultsServiceClient { }
+public interface IResultsServiceClient
+{
+    Task<SurveyResultDto> GetResultsAsync(Guid surveyId);
+}

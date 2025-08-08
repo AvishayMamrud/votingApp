@@ -1,39 +1,44 @@
--- surveys_db/migrate_up.sql
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- 1. Create ENUM type for question_type
+CREATE TYPE question_type_enum AS ENUM ('single_choice', 'range_number', 'open_text');
 
-CREATE TYPE question_type_enum AS ENUM ('single_choice', 'multiple_choice', 'text');
-
-CREATE TABLE surveys (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    owner_id UUID NOT NULL,  -- external reference to User Service
-    title TEXT NOT NULL,
+-- 2. Create Survey table
+CREATE TABLE survey (
+    id UUID PRIMARY KEY,
+    title VARCHAR NOT NULL,
     description TEXT,
-    is_public BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    owner_id UUID NOT NULL, -- External (not enforced)
+    expires_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE questions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+-- 3. Create Question table
+CREATE TABLE question (
+    id UUID PRIMARY KEY,
     survey_id UUID NOT NULL,
     question_text TEXT NOT NULL,
     question_type question_type_enum NOT NULL,
-    position INT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    min_value INT,
+    max_value INT,
+    sort_order INT NOT NULL
 );
 
-CREATE TABLE options (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+-- 4. Create Option table
+CREATE TABLE option (
+    id UUID PRIMARY KEY,
     question_id UUID NOT NULL,
-    option_text TEXT NOT NULL,
-    position INT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    option_text VARCHAR NOT NULL,
+    sort_order INT NOT NULL
 );
 
-CREATE TABLE survey_access_policies (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+-- 5. Create SurveyTag table
+CREATE TABLE survey_tag (
     survey_id UUID NOT NULL,
-    policy_type TEXT NOT NULL CHECK (policy_type IN ('user', 'group', 'role')),
-    reference_id UUID NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    tag VARCHAR NOT NULL,
+    PRIMARY KEY (survey_id, tag)
 );
+
+-- 6. Indexes
+CREATE INDEX idx_question_survey_id ON question(survey_id);
+CREATE INDEX idx_option_question_id ON option(question_id);
+CREATE INDEX idx_survey_tag_tag ON survey_tag(tag);

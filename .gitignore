@@ -16,6 +16,7 @@ out/
 liquibase.h2.db
 liquibase.properties.bak
 liquibase-update.log
+data/
 
 # ASP.NET secrets
 secrets.json

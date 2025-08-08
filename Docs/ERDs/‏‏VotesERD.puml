@@ -3,28 +3,35 @@ hide circle
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
 
-' Vote batch (submission unit)
+' VoteBatch holds overall submission data
 entity "VoteBatch" as VoteBatch {
   *id : UUID <<PK>>
   --
-  survey_id : UUID          -- external reference
-  user_id : UUID            -- external reference
-  voting_mode : enum <<'anonymous', 'named'>>
+  survey_id : UUID  <<external>>
+  user_id : UUID <<external>>
+  voting_mode : enum('named', 'anonymous')
   is_submitted : boolean
   submitted_at : datetime
+  updated_at : datetime
 }
 
-' Individual votes per question
+' Individual votes for each question
 entity "Vote" as Vote {
   *id : UUID <<PK>>
   --
-  vote_batch_id : UUID <<FK>>
-  question_id : UUID        -- external reference
-  selected_option_id : UUID -- external reference
-  created_at : datetime
+  user_id : UUID <<nullable>> <<external>>
+  survey_id : UUID  <<external>>
+  question_id : UUID <<external>>
+  question_type : enum('single', 'range', 'text')
+  ' for single-choice
+  selected_option_id : UUID <<nullable>> <<external>>  
+  ' for range
+  range_value : int <<nullable>>                       
+  ' for open
+  open_text : text <<nullable>>                        
 }
 
-' Relationships (logical, not enforced via FK)
+' Relations
 VoteBatch ||--o{ Vote : contains
 
 @enduml

@@ -3,49 +3,40 @@ hide circle
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
 
-entity "SurveyResult" as SurveyResult {
-  *id : UUID <<PK>>
-  --
-  survey_id : UUID          -- external
-  title : varchar
-  total_responses : int
-  is_public : boolean
-  last_updated : datetime
-}
-
+' Central per-question result summary
 entity "QuestionResult" as QuestionResult {
   *id : UUID <<PK>>
   --
-  survey_result_id : UUID   -- FK to SurveyResult
-  question_id : UUID        -- external
+  survey_id : UUID <<external>>
+  survey_title : varchar
+  question_id : UUID <<external>>
   question_text : text
-  question_type : enum
+  question_type : enum('single', 'range', 'text')
   total_answers : int
+  last_updated : datetime
 }
 
-entity "OptionResult" as OptionResult {
+' Per-option aggregation for single choice
+entity "SingleChoiceResult" as SingleChoiceResult {
   *id : UUID <<PK>>
   --
-  question_result_id : UUID -- FK to QuestionResult
-  option_id : UUID          -- external
+  question_result_id : UUID  -- FK to QuestionResult
+  option_id : UUID <<external>>
   option_text : text
   vote_count : int
   vote_percent : float
 }
 
-entity "DemographicStats" as DemographicStats {
+' Aggregated stats for range questions
+entity "RangeQuestionResult" as RangeQuestionResult {
   *id : UUID <<PK>>
   --
-  survey_result_id : UUID
-  group_by : varchar       -- e.g., 'age', 'location', 'gender'
-  key : varchar            -- e.g., '18-25', 'US', 'female'
-  vote_count : int
-  percent : float
+  question_result_id : UUID  -- FK to QuestionResult
+  avg_value : float
+  std_deviation : float
 }
 
 ' Relationships
-SurveyResult ||--o{ QuestionResult : has
-QuestionResult ||--o{ OptionResult : has
-SurveyResult ||--o{ DemographicStats : breaks_down
-
+QuestionResult ||--o{ SingleChoiceResult : options
+QuestionResult ||--|| RangeQuestionResult
 @enduml
