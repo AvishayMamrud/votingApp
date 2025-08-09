@@ -16,7 +16,7 @@ namespace Infrastructure.Messaging
         {
             _sqs = sqs;
             _handler = handler;
-            _queueUrl = config["SQS:VotesQueueUrl"];
+            _queueUrl = config["SQS:VotesQueueUrl"]!;
         }
 
         public async Task StartListeningAsync(CancellationToken cancellationToken)
