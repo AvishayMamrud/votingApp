@@ -42,6 +42,14 @@ CREATE TABLE range_question_result (
     ON DELETE CASCADE
 );
 
+CREATE TABLE Subscriptions (
+    userToken UUID NOT NULL,
+    surveyId UUID NOT NULL,
+    subscribedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (UserId, SurveyId)
+);
+
+CREATE INDEX idx_subscriptions_survey ON Subscriptions(SurveyId);
 CREATE INDEX idx_question_result ON question_result(survey_id, question_id);
 CREATE INDEX idx_single_choice_result ON single_choice_result(question_result_id, option_id);
 CREATE INDEX idx_range_question_result ON range_question_result(question_result_id);

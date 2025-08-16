@@ -1,10 +1,10 @@
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using System.Text.Json;
-using ResultsService.Application.Interfaces;
-using ResultsService.Common;
+using Application.Interfaces;
+using Common;
 
-namespace ResultsService.Infrastructure.Messaging
+namespace Infrastructure.Messaging
 {
     public class AwsSqsGatewayPushPublisher : IGatewayPushPublisher
     {
@@ -17,11 +17,12 @@ namespace ResultsService.Infrastructure.Messaging
             _queueUrl = queueUrl ?? throw new ArgumentNullException(nameof(queueUrl));
         }
 
-        public async Task<bool> PublishAsync(EventType eventType, object payload)
+        public async Task<bool> PublishAsync(EventType eventType, string userToken, object payload)
         {
             var messageBody = JsonSerializer.Serialize(new
             {
                 EventType = eventType,
+                UserToken = userToken,
                 Timestamp = DateTime.UtcNow,
                 Payload = payload
             });

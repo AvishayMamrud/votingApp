@@ -1,6 +1,6 @@
 
 
-namespace ResultsService.Common
+namespace Common
 {
     public enum EventType
     {
@@ -8,6 +8,6 @@ namespace ResultsService.Common
         SurveyResultsUpdated,
         QuestionResultUpdated,
         RangeStatsUpdated,
-
+        VoteCountUpdated,
     }
 }
