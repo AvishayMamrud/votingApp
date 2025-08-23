@@ -3,6 +3,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Application.Interfaces;
 using Data.DTOs;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Messaging
 {
@@ -12,11 +13,11 @@ namespace Infrastructure.Messaging
         private readonly IResultsUpdateHandler _handler;
         private readonly string _queueUrl;
 
-        public VoteResultsListener(IAmazonSQS sqs, IResultsUpdateHandler handler, IConfiguration config)
+        public VoteResultsListener(IAmazonSQS sqs, IResultsUpdateHandler handler, IOptions<SqsOptions> options)
         {
             _sqs = sqs;
             _handler = handler;
-            _queueUrl = config["SQS:VotesQueueUrl"]!;
+            _queueUrl = options.Value.VotesQueueUrl ?? throw new ArgumentNullException(nameof(options), "SQS queue URL for votes is not configured.");
         }
 
         public async Task StartListeningAsync(CancellationToken cancellationToken)
@@ -41,7 +42,7 @@ namespace Infrastructure.Messaging
                         }
                         await _sqs.DeleteMessageAsync(_queueUrl, message.ReceiptHandle);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Log or dead-letter
                     }

@@ -55,7 +55,7 @@ public class RedisLiveUpdatesManager : ILiveUpdatesManager
         var payloadJson = await _redis.StringGetAsync($"update:payload:{qid}");
         if (payloadJson.IsNullOrEmpty) return results;
 
-        var payload = JsonSerializer.Deserialize<QuestionResult>(payloadJson);
+        var payload = JsonSerializer.Deserialize<QuestionResult>(payloadJson!)!;
 
         // get subscribers
         var subs = await _redis.SetMembersAsync($"subs:{qid}");

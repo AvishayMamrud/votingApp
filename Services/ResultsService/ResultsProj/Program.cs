@@ -2,13 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using Application.Interfaces;
 using Business.Logic;
 using Infrastructure;
-using DAL.DbContext;
+using DAL;
 using Data;
 using Infrastructure.Messaging;
 using Application.Messaging;
 using StackExchange.Redis;
+using Amazon.SQS;
+using Amazon.Extensions.NETCore.Setup;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<SqsOptions>(builder.Configuration.GetSection("SQS"));
 
 // ------------------- Database -------------------
 builder.Services.AddDbContext<ResultsDbContext>(options =>
@@ -41,6 +44,9 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     var config = ConfigurationOptions.Parse(builder.Configuration.GetConnectionString("Redis")!);
     return ConnectionMultiplexer.Connect(config);
 });
+
+var awsOptions = builder.Configuration.GetAWSOptions();
+builder.Services.AddAWSService<IAmazonSQS>(awsOptions);
 
 var app = builder.Build();
 

@@ -3,6 +3,7 @@ using Amazon.SQS.Model;
 using System.Text.Json;
 using Application.Interfaces;
 using Common;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Messaging
 {
@@ -11,10 +12,11 @@ namespace Infrastructure.Messaging
         private readonly IAmazonSQS _sqsClient;
         private readonly string _queueUrl;
 
-        public AwsSqsGatewayPushPublisher(IAmazonSQS sqsClient, string queueUrl)
+        public AwsSqsGatewayPushPublisher(IAmazonSQS sqsClient, IOptions<SqsOptions> options)
         {
             _sqsClient = sqsClient ?? throw new ArgumentNullException(nameof(sqsClient));
-            _queueUrl = queueUrl ?? throw new ArgumentNullException(nameof(queueUrl));
+            _queueUrl = options.Value.GatewayPushQueueUrl 
+                ?? throw new ArgumentNullException(nameof(options), "SQS queue URL for gateway push is not configured.");
         }
 
         public async Task<bool> PublishAsync(EventType eventType, string userToken, object payload)

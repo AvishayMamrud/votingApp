@@ -3,6 +3,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Application.Interfaces;
 using Data.DTOs;
+using Microsoft.Extensions.Options;
 
 namespace Application.Messaging
 {
@@ -12,15 +13,11 @@ namespace Application.Messaging
         private readonly IResultsUpdateHandler _handler;
         private readonly string _queueUrl;
 
-        public SurveyResultsListener(IAmazonSQS sqs, IResultsUpdateHandler handler, IConfiguration config)
+        public SurveyResultsListener(IAmazonSQS sqs, IResultsUpdateHandler handler, IOptions<SqsOptions> options)
         {
             _sqs = sqs;
             _handler = handler;
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config), "Configuration cannot be null");
-            }
-            _queueUrl = config["SQS:SurveyResultsQueueUrl"]!;
+            _queueUrl = options.Value.SurveysQueueUrl ?? throw new ArgumentNullException(nameof(options), "SQS queue URL for surveys is not configured.");
         }
 
         public async Task StartListeningAsync(CancellationToken cancellationToken)

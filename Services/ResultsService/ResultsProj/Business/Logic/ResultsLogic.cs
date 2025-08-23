@@ -2,11 +2,10 @@ using Application.Interfaces;
 using DAL.Entities;
 using Data.DTOs;
 using Data.ENUMs;
-using Common;
 
 namespace Business.Logic
 {
-    class ResultsLogic : IResultsLogic
+    public class ResultsLogic : IResultsLogic
     {
         private readonly IDataAccess _dataAccess;
         private readonly IGatewayPushPublisher _gatewayPushPublisher;
@@ -47,35 +46,14 @@ namespace Business.Logic
         //     await _gatewayPushPublisher.PublishAsync(EventType.RangeStatsUpdated, new { QuestionId = questionId, Avg = avg, StdDev = stdDev });
         // }
 
-        public async Task HandleSurveyUpdateAsync(SurveyDTO dto)
+        public async Task<int> HandleSurveyUpdateAsync(SurveyDTO dto)
         {
             foreach (var question in dto.Questions)
             {
-                var existing = await _dataAccess.GetQuestionResultAsync(question.Id);
-
-                if (existing == null)
-                {
-                    await _dataAccess.AddQuestionResultAsync(question.Id, question.Text, question.Type, dto.Id, dto.Title);
-
-                    if (question.Type == QuestionType.SingleChoice && question.Options != null)
-                    {
-                        foreach (var opt in question.Options)
-                        {
-                            await _dataAccess.AddSingleChoiceResultAsync(
-                                question.Id,
-                                opt.Id,
-                                opt.Text
-                            );
-                        }
-                    }
-                    else if (question.Type == QuestionType.Range)
-                    {
-                        await _dataAccess.AddRangeQuestionResultAsync(question.Id, question.MinRange, question.MaxRange);
-                    }
-                }
+                await _dataAccess.AddQuestionResultAsync(dto.Id, dto.Title, question);
             }
 
-            await _dataAccess.SaveChangesAsync();
+            return await _dataAccess.SaveChangesAsync();
         }
 
         public async Task HandleVoteUpdateAsync(VoteDTO vote)
@@ -100,9 +78,14 @@ namespace Business.Logic
                     {
                         opt.VoteCount += 1;
                         _logger.LogDebug("Range result updated for question: {QuestionId}, Option: {OptionText}, VoteCount: {VoteCount}",
-                            vote.QuestionId, opt.OptionText, opt.VoteCount);
+                            vote.QuestionId, opt.OptionText, opt.VoteCount + 1);
 
-                        _ = _dataAccess.UpdateVoteCountAsync(vote.QuestionId, vote.OptionId, opt.VoteCount);
+                        SingleChoiceResult? o = await _dataAccess.UpdateVoteCountAsync(vote.QuestionId, vote.OptionId, opt.VoteCount + 1);
+                        if (o != null)
+                        {
+                            opt.VoteCount = o.VoteCount;
+                            await _liveUpdatesManager.AddVoteUpdateAsync(vote.QuestionId, result);
+                        }
                     }
                     else
                     {
@@ -127,13 +110,16 @@ namespace Business.Logic
                                     delta * (newValue - newMean);
                         var newStdDev = Math.Sqrt(newS / result.TotalAnswers);
 
-                        range.AvgValue = newMean;
-                        range.StdDeviation = newStdDev;
-
                         _logger.LogDebug("Range result updated for question: {QuestionId}, New Avg: {Avg}, New StdDev: {StdDev}",
                             vote.QuestionId, newMean, newStdDev);
 
-                        _ = _dataAccess.UpdateRangeStatsAsync(vote.QuestionId, newMean, newStdDev);
+                        RangeQuestionResult? o = await _dataAccess.UpdateRangeStatsAsync(vote.QuestionId, newMean, newStdDev);
+                        if (o != null)
+                        {
+                            range.AvgValue = o.AvgValue;
+                            range.StdDeviation = o.StdDeviation;
+                            await _liveUpdatesManager.AddVoteUpdateAsync(vote.QuestionId, result);
+                        }
                     }
                     else
                     {
